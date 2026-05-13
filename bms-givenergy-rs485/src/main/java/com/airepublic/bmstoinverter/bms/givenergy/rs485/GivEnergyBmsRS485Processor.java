@@ -117,11 +117,16 @@ public class GivEnergyBmsRS485Processor extends BMS {
             return;
         }
         BatteryPack pack = getBatteryPack(slot.deviceAddress - 1);
-        switch (slot.blockNumber) {
-            case 1: IrBlock1Mapper.apply(parsed.getData(), pack); break;
-            case 2: IrBlock2Mapper.apply(parsed.getData(), pack); break;
-            case 3: IrBlock3Mapper.apply(parsed.getData(), pack); break;
-            default: throw new IllegalStateException();
+        try {
+            switch (slot.blockNumber) {
+                case 1: IrBlock1Mapper.apply(parsed.getData(), pack); break;
+                case 2: IrBlock2Mapper.apply(parsed.getData(), pack); break;
+                case 3: IrBlock3Mapper.apply(parsed.getData(), pack); break;
+                default: throw new IllegalStateException();
+            }
+        } catch (IllegalArgumentException e) {
+            LOG.debug("IR Block {} mapper failed for device {}: {}", slot.blockNumber, slot.deviceAddress, e.getMessage());
+            // tolerate single-block failure; pack stays in last-known-good state
         }
     }
 

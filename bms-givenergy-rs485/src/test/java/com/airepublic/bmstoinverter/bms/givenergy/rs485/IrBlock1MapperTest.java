@@ -25,10 +25,11 @@ public class IrBlock1MapperTest {
     public void testMapsSerialAndTemps() {
         byte[] data = block1("BAT12345", new int[]{ 173, 178, 173, 165, 169 }); // decideg-C
         BatteryPack pack = new BatteryPack();
+        pack.tempMax = 999; // sentinel; mapper must NOT overwrite (HR owns tempMax)
         IrBlock1Mapper.apply(data, pack);
         assertEquals("BAT12345", pack.manufacturerCode);
         assertEquals(165, pack.tempMin);          // min of {173,178,173,165,169}
-        assertEquals(178, pack.tempMax);          // max
+        assertEquals(999, pack.tempMax, "tempMax owned by HrMapper; IrBlock1Mapper must not write");
         assertEquals((173 + 178 + 173 + 165 + 169) / 5, pack.tempAverage);
     }
 

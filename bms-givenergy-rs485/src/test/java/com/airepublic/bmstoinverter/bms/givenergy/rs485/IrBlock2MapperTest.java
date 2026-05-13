@@ -29,7 +29,7 @@ public class IrBlock2MapperTest {
         assertEquals(50, pack.bmsCycles);
         assertEquals(186000, pack.ratedCapacitymAh);
         assertEquals(175000, pack.remainingCapacitymAh);
-        assertEquals(940, pack.packSOC);
+        // packSOC intentionally not asserted -- it is owned by HrMapper (HR21), not IrBlock2Mapper.
         assertEquals("0BCE", pack.softwareVersion);
         assertEquals(1000, pack.packSOH);
     }

@@ -22,7 +22,7 @@ public final class IrBlock2Mapper {
         pack.ratedCapacitymAh = rated_cAh * 100;
         pack.remainingCapacitymAh = remain_cAh * 100;
 
-        pack.packSOC = (data[25] & 0xFF) * 10;
+        // SoC byte at offset 25 (% direct) is intentionally not mapped here -- HrMapper (HR21) is canonical.
         pack.softwareVersion = String.format("%04X", beU16(data, 35));
 
         if (design_cAh > 0) {

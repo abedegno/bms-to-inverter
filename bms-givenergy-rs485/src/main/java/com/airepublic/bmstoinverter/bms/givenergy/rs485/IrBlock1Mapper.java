@@ -34,14 +34,13 @@ public final class IrBlock1Mapper {
             return;
         }
 
-        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE, sum = 0;
+        int min = Integer.MAX_VALUE, sum = 0;
         for (int t : temps) {
             if (t < min) min = t;
-            if (t > max) max = t;
             sum += t;
         }
         pack.tempMin = min;
-        pack.tempMax = max;
+        // tempMax is owned by HrMapper (HR24) -- the BMS's authoritative max-cell-temp value.
         pack.tempAverage = sum / 5;
     }
 
