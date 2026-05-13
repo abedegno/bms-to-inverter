@@ -68,4 +68,21 @@ public final class GivEnergyModbus {
     public static byte[] encodeFC4Request(int deviceAddress, int startRegister, int count) {
         return encodeRequest(deviceAddress, 4, startRegister, count);
     }
+
+    /** Encode an FC=3 (read holding registers) response. Standard Modbus framing with byte_count. */
+    public static byte[] encodeFC3Response(int deviceAddress, int[] registers) {
+        int byteCount = registers.length * 2;
+        byte[] out = new byte[3 + byteCount + 2];
+        out[0] = (byte) deviceAddress;
+        out[1] = (byte) 3;
+        out[2] = (byte) byteCount;
+        for (int i = 0; i < registers.length; i++) {
+            out[3 + i * 2]     = (byte) ((registers[i] >> 8) & 0xFF);
+            out[3 + i * 2 + 1] = (byte) (registers[i] & 0xFF);
+        }
+        int crc = crc16(out, 0, out.length - 2);
+        out[out.length - 2] = (byte) (crc & 0xFF);
+        out[out.length - 1] = (byte) ((crc >> 8) & 0xFF);
+        return out;
+    }
 }
