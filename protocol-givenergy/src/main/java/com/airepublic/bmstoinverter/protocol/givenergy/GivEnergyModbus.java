@@ -85,4 +85,22 @@ public final class GivEnergyModbus {
         out[out.length - 1] = (byte) ((crc >> 8) & 0xFF);
         return out;
     }
+
+    /**
+     * Encode an FC=4 (read input registers) response. NON-STANDARD framing:
+     * the byte_count slot is replaced by a 16-bit big-endian echo of the request's
+     * start address. Data length is implicit from the request.
+     */
+    public static byte[] encodeFC4Response(int deviceAddress, int startAddress, byte[] data) {
+        byte[] out = new byte[4 + data.length + 2];
+        out[0] = (byte) deviceAddress;
+        out[1] = (byte) 4;
+        out[2] = (byte) ((startAddress >> 8) & 0xFF);
+        out[3] = (byte) (startAddress & 0xFF);
+        System.arraycopy(data, 0, out, 4, data.length);
+        int crc = crc16(out, 0, out.length - 2);
+        out[out.length - 2] = (byte) (crc & 0xFF);
+        out[out.length - 1] = (byte) ((crc >> 8) & 0xFF);
+        return out;
+    }
 }
