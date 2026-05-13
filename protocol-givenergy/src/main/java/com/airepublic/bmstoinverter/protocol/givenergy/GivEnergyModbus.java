@@ -170,4 +170,16 @@ public final class GivEnergyModbus {
         }
         return request.clone();
     }
+
+    /** Encode a Modbus exception response: {device, fc|0x80, exceptionCode, crcLo, crcHi}. */
+    public static byte[] encodeException(int deviceAddress, int functionCode, int exceptionCode) {
+        byte[] out = new byte[5];
+        out[0] = (byte) deviceAddress;
+        out[1] = (byte) (functionCode | 0x80);
+        out[2] = (byte) exceptionCode;
+        int crc = crc16(out, 0, 3);
+        out[3] = (byte) (crc & 0xFF);
+        out[4] = (byte) ((crc >> 8) & 0xFF);
+        return out;
+    }
 }
