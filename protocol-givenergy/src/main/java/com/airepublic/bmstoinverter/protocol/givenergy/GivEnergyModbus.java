@@ -162,4 +162,12 @@ public final class GivEnergyModbus {
             throw new IllegalArgumentException("unsupported FC: " + fc);
         }
     }
+
+    /** Encode the FC=6 write-single-holding-register response: identical copy of the request. */
+    public static byte[] encodeFC6Echo(byte[] request) {
+        if (request == null || request.length != 8) {
+            throw new IllegalArgumentException("FC=6 request must be 8 bytes");
+        }
+        return request.clone();
+    }
 }
