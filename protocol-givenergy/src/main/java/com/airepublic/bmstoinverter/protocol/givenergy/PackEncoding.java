@@ -17,4 +17,22 @@ public final class PackEncoding {
     public static int decode2730(int wireValue) {
         return wireValue + BIAS_2730;
     }
+
+    /**
+     * Pad an ASCII string to a fixed byte width with spaces; the last byte is always NUL.
+     * If the input is longer than {@code width - 1}, it is truncated.
+     */
+    public static byte[] padAsciiSerial(String serial, int width) {
+        byte[] out = new byte[width];
+        int copy = Math.min(serial.length(), width - 1);
+        for (int i = 0; i < copy; i++) {
+            char c = serial.charAt(i);
+            out[i] = (byte) (c <= 0x7F ? c : '?');
+        }
+        for (int i = copy; i < width - 1; i++) {
+            out[i] = ' ';
+        }
+        out[width - 1] = 0;
+        return out;
+    }
 }

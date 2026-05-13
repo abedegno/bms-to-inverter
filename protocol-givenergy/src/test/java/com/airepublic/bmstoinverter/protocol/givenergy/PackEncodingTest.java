@@ -31,4 +31,27 @@ public class PackEncodingTest {
         int encoded = PackEncoding.encode2730(0) & 0xFFFF;
         assertEquals(0xF556, encoded);
     }
+
+    @Test
+    public void testPadAsciiSerial_shorterThanWidth_padsWithSpacesAndNul() {
+        byte[] result = PackEncoding.padAsciiSerial("ABC", 8);
+        // "ABC" + space*4 + NUL
+        byte[] expected = { 'A', 'B', 'C', ' ', ' ', ' ', ' ', 0 };
+        org.junit.jupiter.api.Assertions.assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testPadAsciiSerial_exactWidth_truncatesToWidth() {
+        byte[] result = PackEncoding.padAsciiSerial("ABCDEFGH", 8);
+        // The last byte must be NUL to terminate, so the string is truncated to 7 chars.
+        byte[] expected = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 0 };
+        org.junit.jupiter.api.Assertions.assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testPadAsciiSerial_emptyInput() {
+        byte[] result = PackEncoding.padAsciiSerial("", 4);
+        byte[] expected = { ' ', ' ', ' ', 0 };
+        org.junit.jupiter.api.Assertions.assertArrayEquals(expected, result);
+    }
 }
