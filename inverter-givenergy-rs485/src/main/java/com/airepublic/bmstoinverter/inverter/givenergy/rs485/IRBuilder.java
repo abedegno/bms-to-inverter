@@ -10,6 +10,8 @@ public final class IRBuilder {
     private IRBuilder() {}
 
     private static final int DESIGN_CAPACITY_AH = 186;
+    private static final int CELL_MIN_MV = 2200;
+    private static final int CELL_MAX_MV = 3700;
 
     /** Block 1: 42 bytes. Serial + 5 raw decidegC temperatures + fixed trailer. */
     public static byte[] buildBlock1(BatteryPack pack) {
@@ -62,6 +64,27 @@ public final class IRBuilder {
         return out;
     }
 
+    /** Block 3: 40 bytes. */
+    public static byte[] buildBlock3(BatteryPack pack) {
+        byte[] out = new byte[InputRegisters.BLOCK3_BYTES];
+
+        int cells = Math.min(16, pack.numberOfCells);
+        for (int i = 0; i < cells; i++) {
+            int mv = clamp(pack.cellVmV[i], CELL_MIN_MV, CELL_MAX_MV);
+            putBE16(out, i * 2, mv);
+        }
+
+        int maxMv = clamp(pack.maxCellmV, CELL_MIN_MV, CELL_MAX_MV);
+        int minMv = clamp(pack.minCellmV, CELL_MIN_MV, CELL_MAX_MV);
+
+        putBE16(out, 32, PackEncoding.encode2730(maxMv));
+        putBE16(out, 34, PackEncoding.encode2730(minMv));
+        putBE16(out, 36, maxMv);
+        putBE16(out, 38, minMv);
+
+        return out;
+    }
+
     private static void putBE16Signed(byte[] out, int offset, int value) {
         out[offset]     = (byte) ((value >> 8) & 0xFF);
         out[offset + 1] = (byte) (value & 0xFF);
@@ -70,6 +93,12 @@ public final class IRBuilder {
     private static void putBE16(byte[] out, int offset, int value) {
         out[offset]     = (byte) ((value >> 8) & 0xFF);
         out[offset + 1] = (byte) (value & 0xFF);
+    }
+
+    private static int clamp(int v, int lo, int hi) {
+        if (v < lo) return lo;
+        if (v > hi) return hi;
+        return v;
     }
 
     private static String safeString(String s) {
