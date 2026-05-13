@@ -86,8 +86,7 @@ public final class IRBuilder {
     }
 
     private static void putBE16Signed(byte[] out, int offset, int value) {
-        out[offset]     = (byte) ((value >> 8) & 0xFF);
-        out[offset + 1] = (byte) (value & 0xFF);
+        putBE16(out, offset, value);
     }
 
     private static void putBE16(byte[] out, int offset, int value) {

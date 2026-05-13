@@ -1,5 +1,7 @@
 package com.airepublic.bmstoinverter.inverter.givenergy.rs485;
 
+import java.nio.charset.StandardCharsets;
+
 import com.airepublic.bmstoinverter.core.bms.data.BatteryPack;
 import com.airepublic.bmstoinverter.protocol.givenergy.GivEnergyModbus;
 import com.airepublic.bmstoinverter.protocol.givenergy.HoldingRegisters;
@@ -33,7 +35,7 @@ public final class HRBuilder {
         hr[15] = (pack.packSOC >= 1000) ? 1 : 0;
         hr[16] = 0x0000;
         hr[17] = hr17Counter & 0xFFFF;
-        hr[18] = GivEnergyModbus.crc16(safeString(pack.manufacturerCode).getBytes());
+        hr[18] = GivEnergyModbus.crc16(safeString(pack.manufacturerCode).getBytes(StandardCharsets.US_ASCII));
 
         int hr19 = 0;
         if (pack.packCurrent == 0)      hr19 |= 0x01;
