@@ -44,4 +44,28 @@ public final class GivEnergyModbus {
         int cv     = ((frame[4] & 0xFF) << 8) | (frame[5] & 0xFF);
         return new GivEnergyFrame(device, fc, addr, cv, null, wireCrc);
     }
+
+    private static byte[] encodeRequest(int deviceAddress, int functionCode, int startAddress, int count) {
+        byte[] out = new byte[8];
+        out[0] = (byte) deviceAddress;
+        out[1] = (byte) functionCode;
+        out[2] = (byte) ((startAddress >> 8) & 0xFF);
+        out[3] = (byte) (startAddress & 0xFF);
+        out[4] = (byte) ((count >> 8) & 0xFF);
+        out[5] = (byte) (count & 0xFF);
+        int crc = crc16(out, 0, 6);
+        out[6] = (byte) (crc & 0xFF);
+        out[7] = (byte) ((crc >> 8) & 0xFF);
+        return out;
+    }
+
+    /** Encode an outgoing FC=3 (read holding registers) request. */
+    public static byte[] encodeFC3Request(int deviceAddress, int startRegister, int count) {
+        return encodeRequest(deviceAddress, 3, startRegister, count);
+    }
+
+    /** Encode an outgoing FC=4 (read input registers) request. */
+    public static byte[] encodeFC4Request(int deviceAddress, int startRegister, int count) {
+        return encodeRequest(deviceAddress, 4, startRegister, count);
+    }
 }
