@@ -74,4 +74,19 @@ public class ParseResponseTest {
             () -> GivEnergyModbus.parseResponse(frame, 4, 0x0000));
         assertTrue(ex.getMessage().contains("exception"), ex.getMessage());
     }
+
+    @Test
+    public void testParseResponse_fc4TooShort_rejected() {
+        // 5-byte FC=4 frame: device=1, fc=4, addrHi=0, addrLo=0x15 -- one byte short for FC=4
+        // (FC=4 minimum is 6 bytes: device + fc + addrHi + addrLo + crcLo + crcHi)
+        byte[] valid3 = { 0x01, 0x04, 0x00 };
+        int crc3 = GivEnergyModbus.crc16(valid3);
+        byte[] shortFc4 = new byte[5];
+        System.arraycopy(valid3, 0, shortFc4, 0, 3);
+        shortFc4[3] = (byte) (crc3 & 0xFF);
+        shortFc4[4] = (byte) ((crc3 >> 8) & 0xFF);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            () -> GivEnergyModbus.parseResponse(shortFc4, 4, 0x0015));
+        assertTrue(ex.getMessage().contains("FC=4 response too short"), ex.getMessage());
+    }
 }

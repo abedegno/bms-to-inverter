@@ -141,6 +141,9 @@ public final class GivEnergyModbus {
             System.arraycopy(frame, 3, data, 0, byteCount);
             return new GivEnergyFrame(device, fc, 0, 0, data, wireCrc);
         } else if (fc == 4) {
+            if (frame.length < 6) {
+                throw new IllegalArgumentException("FC=4 response too short: " + frame.length);
+            }
             int addrEcho = ((frame[2] & 0xFF) << 8) | (frame[3] & 0xFF);
             if (addrEcho != expectedAddress) {
                 throw new IllegalArgumentException(String.format("FC=4 addr echo mismatch: expected 0x%04X, got 0x%04X",
