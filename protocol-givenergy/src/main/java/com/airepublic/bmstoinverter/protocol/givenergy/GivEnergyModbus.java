@@ -103,4 +103,63 @@ public final class GivEnergyModbus {
         out[out.length - 1] = (byte) ((crc >> 8) & 0xFF);
         return out;
     }
+
+    /**
+     * Parse a BMS-to-inverter response frame.
+     *
+     * @param frame the full response bytes including trailing CRC
+     * @param expectedFunctionCode 3 or 4 (or 6)
+     * @param expectedAddress for FC=4 the expected start address echo
+     * @return parsed frame with {@code data} populated
+     * @throws IllegalArgumentException on length, FC, CRC, or addr-echo mismatch,
+     *         or when the response is a Modbus exception (FC | 0x80)
+     */
+    public static GivEnergyFrame parseResponse(byte[] frame, int expectedFunctionCode, int expectedAddress) {
+        if (frame == null || frame.length < 5) {
+            throw new IllegalArgumentException("response too short: " + (frame == null ? -1 : frame.length));
+        }
+        int device = frame[0] & 0xFF;
+        int fc     = frame[1] & 0xFF;
+        int wireCrc = ((frame[frame.length - 1] & 0xFF) << 8) | (frame[frame.length - 2] & 0xFF);
+        int computed = crc16(frame, 0, frame.length - 2);
+        if (wireCrc != computed) {
+            throw new IllegalArgumentException(String.format("bad CRC: wire=0x%04X computed=0x%04X", wireCrc, computed));
+        }
+        if ((fc & 0x80) != 0) {
+            int exceptionCode = frame[2] & 0xFF;
+            throw new IllegalArgumentException(String.format("Modbus exception: fc=0x%02X code=%d", fc, exceptionCode));
+        }
+        if (fc != expectedFunctionCode) {
+            throw new IllegalArgumentException(String.format("FC mismatch: expected %d, got %d", expectedFunctionCode, fc));
+        }
+        if (fc == 3) {
+            int byteCount = frame[2] & 0xFF;
+            if (frame.length != 3 + byteCount + 2) {
+                throw new IllegalArgumentException("FC=3 length mismatch: byteCount=" + byteCount + ", frameLen=" + frame.length);
+            }
+            byte[] data = new byte[byteCount];
+            System.arraycopy(frame, 3, data, 0, byteCount);
+            return new GivEnergyFrame(device, fc, 0, 0, data, wireCrc);
+        } else if (fc == 4) {
+            int addrEcho = ((frame[2] & 0xFF) << 8) | (frame[3] & 0xFF);
+            if (addrEcho != expectedAddress) {
+                throw new IllegalArgumentException(String.format("FC=4 addr echo mismatch: expected 0x%04X, got 0x%04X",
+                    expectedAddress, addrEcho));
+            }
+            int dataLen = frame.length - 4 - 2;
+            byte[] data = new byte[dataLen];
+            System.arraycopy(frame, 4, data, 0, dataLen);
+            return new GivEnergyFrame(device, fc, addrEcho, 0, data, wireCrc);
+        } else if (fc == 6) {
+            // FC=6 echoes the request (8 bytes total: device, fc, addrHi, addrLo, valHi, valLo, crcLo, crcHi)
+            if (frame.length != 8) {
+                throw new IllegalArgumentException("FC=6 response must be 8 bytes, got " + frame.length);
+            }
+            int addr = ((frame[2] & 0xFF) << 8) | (frame[3] & 0xFF);
+            int val  = ((frame[4] & 0xFF) << 8) | (frame[5] & 0xFF);
+            return new GivEnergyFrame(device, fc, addr, val, null, wireCrc);
+        } else {
+            throw new IllegalArgumentException("unsupported FC: " + fc);
+        }
+    }
 }
