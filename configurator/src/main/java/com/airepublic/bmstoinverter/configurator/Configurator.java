@@ -529,11 +529,13 @@ public class Configurator extends JFrame {
 
         if (servicesPanel.isEmailEnabled()) {
             // add email service dependencies
+            modules.add("<module>service-email</module>");
+
             serviceDependencies.append("        <!-- ####################  Email service  ################### -->\r\n"
                     + "         <dependency>\r\n"
-                    + "            <groupId>com.ai-republic.email</groupId>\r\n"
-                    + "            <artifactId>email-javamail</artifactId>\r\n"
-                    + "            <version>1.0.5</version>\r\n"
+                    + "            <groupId>com.ai-republic.bms-to-inverter</groupId>\r\n"
+                    + "            <artifactId>service-email</artifactId>\r\n"
+                    + "            <version>${project.version}</version>\r\n"
                     + "        </dependency>\r\n"
                     + "");
         }
