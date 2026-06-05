@@ -22,6 +22,7 @@
 		<module>protocol-modbus</module>
 		<module>protocol-givenergy</module>
 		<module>bms-givenergy-rs485</module>
+		<module>inverter-givenergy-rs485</module>
 		<module>bms-byd-can</module>
 		<module>bms-daly-common</module>
 		<module>bms-daly-can</module>
